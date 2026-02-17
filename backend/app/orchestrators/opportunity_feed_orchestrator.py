@@ -31,6 +31,8 @@ from app.services.opportunity_relevance_engine import (
     OpportunityType,
 )
 from app.data.opportunities_catalog import get_active_opportunities
+from app.core.event_taxonomy import EventType
+from app.services.event_store import emit_event
 
 
 class OpportunityFeedOrchestratorError(Exception):
@@ -490,7 +492,17 @@ class OpportunityFeedOrchestrator(BaseOrchestrator[Dict[str, Any]]):
         
         self.db.add(snapshot)
         self.db.flush()
-        
+        user = self.db.query(User).filter(User.id == user_id).first()
+        emit_event(
+            self.db,
+            user_id=user_id,
+            role=getattr(user, "role", "researcher"),
+            event_type=EventType.OPPORTUNITY_SAVED.value,
+            source_module="opportunity_feed",
+            entity_type="opportunity_feed_snapshot",
+            entity_id=snapshot.id,
+            metadata={"feed_type": feed_type, "total_scored": total_scored},
+        )
         # Store feed items
         # First, get or create opportunity catalog entries
         catalog_data = get_active_opportunities()

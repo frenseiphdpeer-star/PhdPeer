@@ -13,6 +13,8 @@ from app.utils.file_utils import (
 )
 from app.utils.text_extractor import extract_text, TextExtractionError
 from app.utils.text_processor import TextProcessor
+from app.core.event_taxonomy import EventType
+from app.services.event_store import emit_event
 
 
 class DocumentServiceError(Exception):
@@ -144,6 +146,17 @@ class DocumentService:
         )
         
         self.db.add(document_artifact)
+        self.db.flush()
+        emit_event(
+            self.db,
+            user_id=user_id,
+            role=getattr(user, "role", "researcher"),
+            event_type=EventType.DOCUMENT_UPLOADED.value,
+            source_module="documents",
+            entity_type="document_artifact",
+            entity_id=document_artifact.id,
+            metadata={"filename": filename, "document_type": document_type},
+        )
         self.db.commit()
         self.db.refresh(document_artifact)
         

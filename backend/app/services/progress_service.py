@@ -11,6 +11,8 @@ from app.models.progress_event import ProgressEvent
 from app.models.committed_timeline import CommittedTimeline
 from app.models.user import User
 from app.utils.invariants import check_progress_event_has_milestone
+from app.core.event_taxonomy import EventType
+from app.services.event_store import emit_event
 
 
 class ProgressServiceError(Exception):
@@ -151,7 +153,17 @@ class ProgressService:
             impact_level=impact_level,
             notes=notes,
         )
-        
+        # Longitudinal event store (standardized taxonomy)
+        emit_event(
+            self.db,
+            user_id=user_id,
+            role=getattr(user, "role", "researcher"),
+            event_type=EventType.MILESTONE_UPDATED.value,
+            source_module="progress",
+            entity_type="timeline_milestone",
+            entity_id=milestone_id,
+            metadata={"milestone_title": milestone.title[:100], "completion_date": str(completion_date)},
+        )
         # Note: log_progress_event already commits, but we ensure milestone update is committed
         self.db.commit()
         

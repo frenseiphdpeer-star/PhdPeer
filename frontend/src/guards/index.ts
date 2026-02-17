@@ -18,3 +18,9 @@ export { RouteGuard, useRouteAccessible } from './RouteGuard';
 export { ProtectedRoute } from './ProtectedRoute';
 export { RouteErrorBoundary } from './RouteErrorBoundary';
 export { useNavigationGuard } from './useNavigationGuard';
+export {
+  RoleGuard,
+  ResearcherOnly,
+  SupervisorOnly,
+  AdminOnly,
+} from './RoleGuard';

@@ -45,7 +45,8 @@ The system consists of a **FastAPI backend**, a **React frontend**, and an optio
 | **Progress tracking** | Log progress events; analytics and journey health engines. |
 | **Well-being** | Quarterly check-ins, RCI score, signals, continuity reports, recommendations. |
 | **Writing evolution** | Establish writing baseline, checkpoints, and certificates (frontend). |
-| **API** | REST API with JWT auth, CORS, and OpenAPI (Swagger/ReDoc). |
+| **API** | REST API with CORS and OpenAPI (Swagger/ReDoc). |
+| **RBAC** | Roles: PhD Researcher, Supervisor, Institution Admin. Timeline editing (Researcher), student risk visibility (Supervisor/Admin), cohort aggregation (Admin). Separate dashboard routes and permission guards. |
 
 ---
 
@@ -285,6 +286,14 @@ alembic upgrade head
 | `make lint` | Lint backend (flake8, black, mypy) |
 | `make format` | Format backend with black |
 | `make migrate` | Run `alembic upgrade head` |
+
+---
+
+## Role-based access (RBAC)
+
+- **Roles:** PhD Researcher, Supervisor, Institution Admin.
+- **Backend:** Auth via headers `X-User-Id` and `X-User-Role` (or JWT when implemented). Permissions: `timeline_edit` (Researcher), `student_risk_visibility` (Supervisor & Admin), `cohort_aggregation` (Admin). Supervisors see only assigned students; admins see aggregated anonymized data. Endpoints: `/api/v1/supervisor/students`, `/api/v1/admin/cohort`.
+- **Frontend:** Auth store holds user and role; route guards (`ResearcherOnly`, `SupervisorOnly`, `AdminOnly`) protect `/dashboard`, `/supervisor/dashboard`, `/admin/dashboard`. Hooks: `useCanEditTimeline()`, `useCanViewStudentRisk()`, `useCanViewCohortAggregation()`.
 
 ---
 

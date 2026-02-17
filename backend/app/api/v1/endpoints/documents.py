@@ -1,9 +1,11 @@
-"""Document API endpoints."""
+"""Document API endpoints. RBAC: Timeline/edit context — Researcher uploads for self only."""
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.core.security import get_current_user, require_permission, Permission
+from app.models.user import User
 from app.services.document_service import (
     DocumentService,
     DocumentServiceError,
@@ -16,11 +18,12 @@ router = APIRouter()
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(..., description="Document file (PDF or DOCX)"),
-    user_id: UUID = Form(..., description="User ID"),
+    user_id: UUID = Form(..., description="User ID (must match current user for researchers)"),
     title: str | None = Form(None, description="Document title (defaults to filename)"),
     description: str | None = Form(None, description="Document description"),
     document_type: str | None = Form(None, description="Document type (e.g., 'research_proposal')"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(Permission.TIMELINE_EDIT)),
 ) -> dict:
     """
     Upload and process a document.
@@ -48,6 +51,11 @@ async def upload_document(
     Raises:
         HTTPException: If upload fails
     """
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Can only upload documents for your own account",
+        )
     try:
         # Read file content
         file_content = await file.read()

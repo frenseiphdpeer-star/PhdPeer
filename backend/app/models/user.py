@@ -5,15 +5,19 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from app.models.base import BaseModel
 
+# Role values: researcher | supervisor | institution_admin
+DEFAULT_ROLE = "researcher"
+
 
 class User(Base, BaseModel):
     """
-    User model representing platform users (PhD students, advisors, etc.).
+    User model representing platform users (PhD students, supervisors, admins).
     
     Attributes:
         email: Unique email address
         hashed_password: Hashed password for authentication
         full_name: User's full name
+        role: researcher | supervisor | institution_admin (RBAC)
         is_active: Whether the user account is active
         is_superuser: Whether the user has admin privileges
         institution: Academic institution
@@ -25,6 +29,7 @@ class User(Base, BaseModel):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=True)
+    role = Column(String, default=DEFAULT_ROLE, nullable=False, index=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     institution = Column(String, nullable=True)
@@ -75,4 +80,18 @@ class User(Base, BaseModel):
         "AnalyticsSnapshot",
         back_populates="user",
         cascade="all, delete-orphan"
+    )
+    # RBAC: as supervisor, assigned students
+    assigned_students = relationship(
+        "SupervisorAssignment",
+        back_populates="supervisor",
+        foreign_keys="[SupervisorAssignment.supervisor_id]",
+        cascade="all, delete-orphan",
+    )
+    # RBAC: as student, assigned supervisor(s)
+    assigned_supervisors = relationship(
+        "SupervisorAssignment",
+        back_populates="student",
+        foreign_keys="[SupervisorAssignment.student_id]",
+        cascade="all, delete-orphan",
     )

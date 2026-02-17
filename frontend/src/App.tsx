@@ -1,9 +1,17 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
-import { ProtectedRoute, RouteErrorBoundary } from "./guards";
+import {
+  ProtectedRoute,
+  RouteErrorBoundary,
+  ResearcherOnly,
+  SupervisorOnly,
+  AdminOnly,
+} from "./guards";
 import Index from "./pages/Index";
 import WellBeingCheckIn from "./pages/WellBeingCheckIn";
 import Dashboard from "./pages/Dashboard";
+import SupervisorDashboard from "./pages/SupervisorDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import ResearchTimeline from "./pages/ResearchTimeline";
 import PeerNetwork from "./pages/PeerNetwork";
 import UniversityDashboard from "./pages/UniversityDashboard";
@@ -38,13 +46,33 @@ const App = () => (
                 <Route path="/timeline" element={<ResearchTimeline />} />
                 <Route path="/network" element={<PeerNetwork />} />
                 <Route path="/university-dashboard" element={<UniversityDashboard />} />
-                {/* Dashboard requires committed timeline for analytics */}
+                {/* Researcher dashboard: own analytics (requires committed timeline) */}
                 <Route 
                   path="/dashboard" 
                   element={
-                    <ProtectedRoute requires="analytics" fallbackRoute="/timeline">
-                      <Dashboard />
-                    </ProtectedRoute>
+                    <ResearcherOnly fallbackRoute="/home">
+                      <ProtectedRoute requires="analytics" fallbackRoute="/timeline">
+                        <Dashboard />
+                      </ProtectedRoute>
+                    </ResearcherOnly>
+                  } 
+                />
+                {/* Supervisor dashboard: assigned students, risk visibility */}
+                <Route 
+                  path="/supervisor/dashboard" 
+                  element={
+                    <SupervisorOnly>
+                      <SupervisorDashboard />
+                    </SupervisorOnly>
+                  } 
+                />
+                {/* Institution Admin dashboard: cohort aggregation */}
+                <Route 
+                  path="/admin/dashboard" 
+                  element={
+                    <AdminOnly>
+                      <AdminDashboard />
+                    </AdminOnly>
                   } 
                 />
                 <Route path="/collaboration-ledger" element={<CollaborationLedger />} />

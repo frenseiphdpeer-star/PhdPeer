@@ -359,10 +359,19 @@ When reviewing PRs, check for:
 | Dev setup details | `resources/docs/development-setup.md` |
 | Architecture/docs | `resources/`, `backend/README.md`, `frontend/README.md` |
 | **Documentation flow** (what to read in order) | This file, [§3 Documentation Flow](#3-documentation-flow-what-to-read--in-what-order) |
+| **RBAC (roles & permissions)** | Backend: `backend/app/core/security.py`, `backend/app/core/data_visibility.py`. Frontend: `frontend/src/lib/rbac.ts`, `frontend/src/store/auth-store.ts`, `frontend/src/guards/RoleGuard.tsx`, `frontend/src/hooks/usePermissions.ts`. |
 
 ---
 
 ## 12. Common Tasks
+
+### Role-based access (RBAC)
+
+- **Roles:** PhD Researcher, Supervisor, Institution Admin.
+- **Permissions:** Timeline editing (Researcher only), Student risk visibility (Supervisor & Admin), Cohort aggregation (Admin only).
+- **Backend:** All v1 endpoints that need auth use `get_current_user` (headers `X-User-Id`, `X-User-Role`). Use `require_permission(Permission.TIMELINE_EDIT)` or `require_roles(Role.SUPERVISOR)` etc. Data visibility: supervisors see only assigned students; admins see aggregated/anonymized data.
+- **Frontend:** Set user/role in `auth-store`; API client sends RBAC headers from persisted auth. Use `ResearcherOnly`, `SupervisorOnly`, `AdminOnly` for dashboard routes. Use `useCanEditTimeline()`, `useCanViewStudentRisk()`, `useCanViewCohortAggregation()` to hide/show UI.
+- **Routes:** `/dashboard` (Researcher), `/supervisor/dashboard` (Supervisor), `/admin/dashboard` (Admin).
 
 ### Add a new API endpoint (backend)
 

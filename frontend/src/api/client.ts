@@ -58,11 +58,33 @@ function buildUrl(endpoint: string, params?: Record<string, string | number | bo
 }
 
 /**
+ * Get RBAC headers from persisted auth store (X-User-Id, X-User-Role).
+ * Backend uses these for role-based access control when JWT is not present.
+ */
+function getRbacHeaders(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem('frensei-auth');
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as { state?: { user?: { id: string; role: string } } };
+    const user = parsed?.state?.user;
+    if (!user?.id) return {};
+    const out: Record<string, string> = {
+      'X-User-Id': user.id,
+    };
+    if (user.role) out['X-User-Role'] = user.role;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Get default headers
  */
 function getDefaultHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...getRbacHeaders(),
   };
   
   // Add authorization token if available

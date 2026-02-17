@@ -7,6 +7,8 @@ from sqlalchemy import desc
 
 from app.models.questionnaire_draft import QuestionnaireDraft, QuestionnaireVersion
 from app.models.user import User
+from app.core.event_taxonomy import EventType
+from app.services.event_store import emit_event
 
 
 class QuestionnaireDraftError(Exception):
@@ -373,6 +375,18 @@ class QuestionnaireDraftService:
         draft.submission_id = submission_id
         
         self.db.add(draft)
+        self.db.flush()
+        user = self.db.query(User).filter(User.id == user_id).first()
+        emit_event(
+            self.db,
+            user_id=user_id,
+            role=getattr(user, "role", "researcher"),
+            event_type=EventType.QUESTIONNAIRE_COMPLETED.value,
+            source_module="questionnaire_draft",
+            entity_type="questionnaire_draft",
+            entity_id=draft_id,
+            metadata={"submission_id": str(submission_id)},
+        )
         self.db.commit()
         self.db.refresh(draft)
         
