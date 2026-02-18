@@ -1,7 +1,7 @@
 """API v1 router. RBAC: documents/analytics by role; supervisor/ admin have dedicated routes."""
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import analytics, documents, supervisor, admin, events
+from app.api.v1.endpoints import analytics, documents, supervisor, admin, events, engagement, intelligence, timeline_feedback
 
 api_router = APIRouter()
 
@@ -30,4 +30,19 @@ api_router.include_router(
     events.router,
     prefix="/events",
     tags=["events", "audit"]
+)
+api_router.include_router(
+    engagement.router,
+    prefix="/engagement",
+    tags=["engagement"]
+)
+api_router.include_router(
+    intelligence.router,
+    prefix="/intelligence",
+    tags=["intelligence", "interpretability"]
+)
+api_router.include_router(
+    timeline_feedback.router,
+    prefix="/timeline-feedback",
+    tags=["timeline_feedback"]
 )

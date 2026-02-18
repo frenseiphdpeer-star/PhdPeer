@@ -4,7 +4,9 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.models.document_artifact import DocumentArtifact
+from app.models.document_stage_suggestion import DocumentStageSuggestion
 from app.models.user import User
+from app.services.stage_classification_engine import StageClassificationEngine
 from app.utils.file_utils import (
     generate_unique_filename,
     save_upload_file,
@@ -147,6 +149,24 @@ class DocumentService:
         
         self.db.add(document_artifact)
         self.db.flush()
+        # Stage inference: store suggestion for accept/override flow
+        try:
+            engine = StageClassificationEngine()
+            result = engine.infer_from_document(
+                text=normalized_text or "",
+                section_map=section_map,
+            )
+            suggestion = DocumentStageSuggestion(
+                document_artifact_id=document_artifact.id,
+                user_id=user_id,
+                suggested_stage=result.suggested_stage,
+                confidence_score=result.confidence_score,
+                reasoning_tokens=result.reasoning_tokens,
+            )
+            self.db.add(suggestion)
+        except Exception:
+            # Do not fail upload if stage inference fails
+            pass
         emit_event(
             self.db,
             user_id=user_id,

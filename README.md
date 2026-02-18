@@ -80,6 +80,7 @@ Phdpeer-Backend/
 │   ├── tests/                  # Backend tests
 │   ├── requirements.txt
 │   ├── requirements-dev.txt
+│   ├── ARCHITECTURE.md         # Layers, event store, RBAC, traceability
 │   └── .env.example
 ├── frontend/                   # React + Vite + TypeScript
 │   ├── src/
@@ -331,6 +332,7 @@ make test
 
 - **[CONTRIBUTION.md](CONTRIBUTION.md)** — Contribution guide: setup, workflow, code standards, Git, PR process, troubleshooting. Start here if you are contributing or onboarding.
 - **Documentation flow** — CONTRIBUTION.md includes a [documentation flow](CONTRIBUTION.md#3-documentation-flow-what-to-read--in-what-order) that lists which docs to read and in what order (e.g. development-setup, backend README, frontend README, API guidelines).
+- **Backend architecture** — [backend/ARCHITECTURE.md](backend/ARCHITECTURE.md) describes the four-layer separation (Input → Event normalization → Intelligence → Experience), RBAC, standardized event taxonomy, immutable longitudinal event store, interpretability (evidence + explanation for every signal), and traceability to raw events.
 - **[resources/](resources/)** — PRDs, architecture, and guides under `resources/docs/`, `resources/prds/`, `resources/architecture/`.
 - **[backend/README.md](backend/README.md)** — Backend structure, patterns, migrations, and run instructions.
 - **[frontend/README.md](frontend/README.md)** — Frontend stack and how to run/edit.

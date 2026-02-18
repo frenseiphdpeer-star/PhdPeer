@@ -68,6 +68,11 @@ class OpportunityCatalog(Base, BaseModel):
     
     # Relationships
     feed_items = relationship("OpportunityFeedItem", back_populates="opportunity")
+    user_opportunities = relationship(
+        "UserOpportunity",
+        back_populates="opportunity",
+        cascade="all, delete-orphan",
+    )
     
     # Indexes
     __table_args__ = (

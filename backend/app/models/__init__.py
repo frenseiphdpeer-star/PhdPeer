@@ -25,6 +25,12 @@ from app.models.opportunity import (
 )
 from app.models.supervisor_assignment import SupervisorAssignment
 from app.models.longitudinal_event import LongitudinalEvent
+from app.models.document_stage_suggestion import DocumentStageSuggestion
+from app.models.engagement_event import EngagementEvent
+from app.models.user_opportunity import UserOpportunity
+from app.models.supervision_session import SupervisionSession
+from app.models.writing_version import WritingVersion
+from app.models.timeline_adjustment_suggestion import TimelineAdjustmentSuggestion
 
 # Import Base from database for Alembic
 from app.database import Base
@@ -53,6 +59,12 @@ __all__ = [
     'OpportunityFeedItem',
     'SupervisorAssignment',
     'LongitudinalEvent',
+    'DocumentStageSuggestion',
+    'EngagementEvent',
+    'UserOpportunity',
+    'SupervisionSession',
+    'WritingVersion',
+    'TimelineAdjustmentSuggestion',
 ]
 
 # Ensure all models are imported for Alembic to detect them

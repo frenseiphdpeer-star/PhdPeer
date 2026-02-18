@@ -58,3 +58,14 @@ class DocumentArtifact(Base, BaseModel):
     # Relationships
     user = relationship("User", back_populates="document_artifacts")
     baseline = relationship("Baseline", back_populates="document_artifact")
+    stage_suggestion = relationship(
+        "DocumentStageSuggestion",
+        back_populates="document_artifact",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    writing_versions = relationship(
+        "WritingVersion",
+        back_populates="document_artifact",
+        cascade="all, delete-orphan",
+    )

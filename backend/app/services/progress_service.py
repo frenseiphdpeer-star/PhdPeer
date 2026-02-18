@@ -13,6 +13,7 @@ from app.models.user import User
 from app.utils.invariants import check_progress_event_has_milestone
 from app.core.event_taxonomy import EventType
 from app.services.event_store import emit_event
+from app.services.state_transition_service import transition_milestone, InvalidTransitionError
 
 
 class ProgressServiceError(Exception):
@@ -119,7 +120,18 @@ class ProgressService:
         
         self.db.add(milestone)
         self.db.flush()
-        
+        # State machine: transition to completed (valid transitions only; logs to event store)
+        try:
+            transition_milestone(
+                self.db,
+                milestone_id,
+                "completed",
+                user_id,
+                getattr(user, "role", "researcher"),
+                "progress",
+            )
+        except InvalidTransitionError:
+            pass  # e.g. already completed; keep existing state
         # Compute delay flags (planned vs actual)
         delay_days = self._calculate_delay_days(
             milestone.target_date,

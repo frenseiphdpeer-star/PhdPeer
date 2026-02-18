@@ -33,6 +33,11 @@ class EventType(str, Enum):
     OPPORTUNITY_APPLIED = "opportunity_applied"
     COLLABORATION_ADDED = "collaboration_added"
     STAGE_OVERRIDE = "stage_override"
+    ENGAGEMENT_MONTHLY_DIGEST = "engagement_monthly_digest"
+    STATE_TRANSITION = "state_transition"
+    TIMELINE_ADJUSTMENT_SUGGESTION = "timeline_adjustment_suggestion"
+    TIMELINE_ADJUSTMENT_ACCEPTED = "timeline_adjustment_accepted"
+    TIMELINE_ADJUSTMENT_REJECTED = "timeline_adjustment_rejected"
 
 
 # Allowed event types (for validation)

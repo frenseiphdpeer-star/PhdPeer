@@ -61,3 +61,8 @@ class CommittedTimeline(Base, BaseModel):
         cascade="all, delete-orphan",
         foreign_keys="TimelineStage.committed_timeline_id"
     )
+    timeline_adjustment_suggestions = relationship(
+        "TimelineAdjustmentSuggestion",
+        back_populates="committed_timeline",
+        cascade="all, delete-orphan",
+    )

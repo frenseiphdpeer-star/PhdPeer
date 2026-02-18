@@ -1376,8 +1376,8 @@ class TimelineOrchestrator(BaseOrchestrator[Dict[str, Any]]):
         if not document:
             return None
         
-        # Extract text from metadata field (where DocumentService stores it)
-        return document.metadata
+        # Use normalized document text from DocumentService
+        return document.document_text
     
     def _create_draft_timeline_record(
         self,

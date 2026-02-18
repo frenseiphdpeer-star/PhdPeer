@@ -1,8 +1,9 @@
 """
 Longitudinal event store: immutable, append-only event logging.
 
-All feature modules must emit standardized events via this store.
-No update or delete methods — audit trail only.
+Architecture: Event normalization layer. All feature modules must emit standardized
+events via this store. No update or delete methods — audit trail only.
+All signals in the intelligence layer are traceable to raw events (event_id) in this store.
 """
 
 from datetime import datetime

@@ -81,6 +81,43 @@ class User(Base, BaseModel):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+    document_stage_suggestions = relationship(
+        "DocumentStageSuggestion",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    engagement_events = relationship(
+        "EngagementEvent",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    user_opportunities = relationship(
+        "UserOpportunity",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    writing_versions = relationship(
+        "WritingVersion",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    supervision_sessions_as_supervisor = relationship(
+        "SupervisionSession",
+        foreign_keys="[SupervisionSession.supervisor_id]",
+        back_populates="supervisor",
+        cascade="all, delete-orphan",
+    )
+    supervision_sessions_as_student = relationship(
+        "SupervisionSession",
+        foreign_keys="[SupervisionSession.student_id]",
+        back_populates="student",
+        cascade="all, delete-orphan",
+    )
+    timeline_adjustment_suggestions = relationship(
+        "TimelineAdjustmentSuggestion",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
     # RBAC: as supervisor, assigned students
     assigned_students = relationship(
         "SupervisorAssignment",
