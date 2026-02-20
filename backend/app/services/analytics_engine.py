@@ -14,6 +14,7 @@ from app.models.timeline_milestone import TimelineMilestone
 from app.models.analytics_snapshot import AnalyticsSnapshot
 from app.services.progress_service import ProgressService
 from app.services.risk_fusion_engine import RiskFusionEngine
+from app.services.temporal_engine import TemporalEngine
 
 
 @dataclass
