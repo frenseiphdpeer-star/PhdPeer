@@ -163,7 +163,7 @@ jobs:
   deploy-staging:
     name: Deploy Staging
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: ${{ false }}
     needs: build-and-push-images
     environment: staging
 
@@ -246,7 +246,7 @@ jobs:
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: ${{ false }}
     needs:
       - build-and-push-images
       - deploy-staging
