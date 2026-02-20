@@ -1,4 +1,6 @@
 """Application configuration management."""
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +30,14 @@ class Settings(BaseSettings):
     # Documentation exposure
     PUBLIC_DOCS_ENABLED: bool = False
     PUBLIC_OPENAPI_ENABLED: bool = False
+
+    # LLM / Groq
+    LLM_PROVIDER: str = "groq"
+    LLM_API_KEY: Optional[str] = None
+    LLM_MODEL: str = "llama-3.3-70b-versatile"
+    LLM_TEMPERATURE: float = 0.15
+    LLM_MAX_TOKENS: int = 4096
+    LLM_TIMEOUT_SECONDS: int = 60
     
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -36,17 +46,4 @@ class Settings(BaseSettings):
     )
 
 
-try:
-    settings = Settings()
-    # #region agent log
-    import json
-    with open(r'd:\Frensei-Engine\.cursor\debug.log', 'a') as f:
-        f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"D","location":"config.py:36","message":"Settings loaded","data":{"has_database_url":hasattr(settings, 'DATABASE_URL'),"has_secret_key":hasattr(settings, 'SECRET_KEY'),"database_url_set":bool(getattr(settings, 'DATABASE_URL', None))},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-    # #endregion
-except Exception as e:
-    # #region agent log
-    import json
-    with open(r'd:\Frensei-Engine\.cursor\debug.log', 'a') as f:
-        f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"D","location":"config.py:36","message":"Settings load failed","data":{"error":str(e),"error_type":type(e).__name__},"timestamp":int(__import__('time').time()*1000)}) + '\n')
-    # #endregion
-    raise
+settings = Settings()

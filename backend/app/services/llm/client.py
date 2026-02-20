@@ -74,6 +74,11 @@ class LLMClient:
         self.default_max_tokens = max_tokens or settings.LLM_MAX_TOKENS
         self.timeout = timeout or settings.LLM_TIMEOUT_SECONDS
 
+        if settings.LLM_PROVIDER.lower() != "groq":
+            raise LLMError(
+                f"Unsupported LLM_PROVIDER '{settings.LLM_PROVIDER}'. Expected 'groq'."
+            )
+
         if not self.api_key:
             raise LLMError(
                 "No API key provided. Set LLM_API_KEY in environment or pass api_key parameter."
