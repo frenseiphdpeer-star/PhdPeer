@@ -9,12 +9,11 @@ from app.api.deps import get_current_user
 from app.api.v1 import api_router
 from app.middleware.role_access import RoleBasedAccessMiddleware
 from app.models.user import User
+from app.api.v1.auth import router as auth_router
 
-
-openapi_url = "/openapi.json" if settings.PUBLIC_OPENAPI_ENABLED else None
-docs_url = "/docs" if settings.PUBLIC_DOCS_ENABLED and settings.PUBLIC_OPENAPI_ENABLED else None
-redoc_url = "/redoc" if settings.PUBLIC_DOCS_ENABLED and settings.PUBLIC_OPENAPI_ENABLED else None
-
+openapi_url = "/openapi.json" if getattr(settings, "PUBLIC_OPENAPI_ENABLED", True) else None
+docs_url = "/docs" if getattr(settings, "PUBLIC_DOCS_ENABLED", True) and getattr(settings, "PUBLIC_OPENAPI_ENABLED", True) else None
+redoc_url = "/redoc" if getattr(settings, "PUBLIC_DOCS_ENABLED", True) and getattr(settings, "PUBLIC_OPENAPI_ENABLED", True) else None
 if settings.ENVIRONMENT.lower() in {"development", "dev", "local"}:
     cors_origins = [
         "http://localhost:3000",
@@ -78,4 +77,8 @@ async def health_check():
 
 
 # Include API v1 router
+# Include auth FIRST, no auth dependency on it
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
+
+# Then the protected routes
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)

@@ -4,6 +4,7 @@ Models Package
 Imports all SQLAlchemy models for application use.
 """
 
+from app.database import Base
 from app.models.base import BaseModel
 from app.models.user import User, UserRole, SubscriptionTier
 from app.models.document_artifact import DocumentArtifact

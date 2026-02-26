@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from app.database import get_db
-from app.core.security import get_current_user, require_permission, Permission
+from app.core.security import Permission, get_role_permissions, _role_from_string
+from app.api.deps import get_current_user
 from app.models.user import User
 from app.services.document_service import (
     DocumentService,
@@ -25,7 +26,7 @@ async def upload_document(
     description: str | None = Form(None, description="Document description"),
     document_type: str | None = Form(None, description="Document type (e.g., 'research_proposal')"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.TIMELINE_EDIT)),
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     """
     Upload and process a document.
@@ -53,11 +54,17 @@ async def upload_document(
     Raises:
         HTTPException: If upload fails
     """
+   # Check permission first
+    role = _role_from_string(current_user.role if isinstance(current_user.role, str) else current_user.role.value)
+    if Permission.TIMELINE_EDIT not in get_role_permissions(role):
+      raise HTTPException(status_code=403, detail="Permission denied: timeline_edit required")
+
+# Then check ownership
     if current_user.id != user_id:
-        raise HTTPException(
-            status_code=403,
-            detail="Can only upload documents for your own account",
-        )
+     raise HTTPException(
+        status_code=403,
+        detail="Can only upload documents for your own account",
+    )
     try:
         # Read file content
         file_content = await file.read()
@@ -129,7 +136,7 @@ def get_stage_suggestion(
 def accept_stage_suggestion(
     document_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.TIMELINE_EDIT)),
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     """Accept the suggested stage (accepted_stage = suggested_stage). Does not delete history."""
     svc = StageSuggestionService(db)
@@ -147,7 +154,7 @@ def override_stage_suggestion(
     document_id: UUID,
     body: StageOverrideBody,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission(Permission.TIMELINE_EDIT)),
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     """
     Override with user-chosen stage. Logs stage_override event, stores override_reason

@@ -28,8 +28,8 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
 
     # Documentation exposure
-    PUBLIC_DOCS_ENABLED: bool = False
-    PUBLIC_OPENAPI_ENABLED: bool = False
+    PUBLIC_DOCS_ENABLED: bool = True
+    PUBLIC_OPENAPI_ENABLED: bool = True
 
     # LLM / Groq
     LLM_PROVIDER: str = "groq"

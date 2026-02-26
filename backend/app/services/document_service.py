@@ -2,6 +2,7 @@
 from typing import Optional, Dict, Any
 from uuid import UUID
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.models.document_artifact import DocumentArtifact
 from app.models.document_stage_suggestion import DocumentStageSuggestion
@@ -140,7 +141,7 @@ class DocumentService:
         # Build document_metadata combining processing info with LLM-extracted metadata
         document_metadata = {
             "original_filename": filename,
-            "processing_timestamp": str(self.db.execute("SELECT NOW()").scalar()),
+            "processing_timestamp": str(self.db.execute(text("SELECT NOW()")).scalar()),
             # LLM-extracted fields
             "supervisor_names": llm_metadata.get("supervisor_names", []),
             "research_domain": llm_metadata.get("research_domain"),

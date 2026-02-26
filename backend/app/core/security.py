@@ -115,7 +115,8 @@ def require_permission(permission: Permission):
     Use: Depends(require_permission(Permission.TIMELINE_EDIT))
     """
 
-    def _dependency(current_user: User = Depends(get_current_user)) -> User:
+    def require_permission(permission: Permission):
+     def _dependency(current_user: User = Depends(jwt_get_current_user)) -> User:
         role = getattr(current_user, "role", None) or Role.RESEARCHER
         if isinstance(role, str):
             role = _role_from_string(role)
@@ -126,8 +127,7 @@ def require_permission(permission: Permission):
                 detail=f"Permission denied: {permission.value} required",
             )
         return current_user
-
-    return _dependency
+     return _dependency
 
 
 def require_roles(*roles: Role):

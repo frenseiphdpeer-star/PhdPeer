@@ -83,3 +83,7 @@ build/
 *.pyc
 .venv311/
 .venv/
+
+# Uploaded user files
+backend/uploads/*
+!backend/uploads/.gitkeep
