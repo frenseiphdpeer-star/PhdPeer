@@ -1,8 +1,12 @@
+"use client";
+
+import { OpportunityDiscoveryView } from "@/components/opportunities";
+import { opportunitiesDummy } from "@/lib/data/opportunities-dummy";
+
 export default function OpportunitiesPage() {
   return (
-    <div>
-      <h2 className="text-2xl font-bold">Opportunities</h2>
-      <p className="text-muted-foreground">Relevant opportunities and recommendations</p>
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
+      <OpportunityDiscoveryView data={opportunitiesDummy} />
     </div>
   );
 }
