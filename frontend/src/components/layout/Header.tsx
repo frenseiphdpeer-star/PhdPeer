@@ -1,98 +1,36 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { InstitutionalAccessModal } from "@/components/auth/InstitutionalAccessModal";
+"use client";
 
-export const Header = () => {
-  const location = useLocation();
-  const [institutionalAccessOpen, setInstitutionalAccessOpen] = useState(false);
+import { usePathname } from "next/navigation";
+import { ThemeToggle } from "./theme-toggle";
+import { UserProfileDropdown } from "./user-profile-dropdown";
 
-  const isActive = (path: string) => location.pathname === path;
+const ROUTE_TITLES: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/dashboard/profile": "Profile",
+  "/dashboard/settings": "Settings",
+  "/dashboard/timeline": "Timeline",
+  "/dashboard/writing": "Writing",
+  "/dashboard/supervision": "Supervision",
+  "/dashboard/health": "Wellness",
+  "/dashboard/opportunities": "Opportunities",
+  "/dashboard/network": "Network",
+};
+
+interface HeaderProps {
+  title?: string;
+}
+
+export function Header({ title }: HeaderProps) {
+  const pathname = usePathname();
+  const displayTitle = title ?? ROUTE_TITLES[pathname] ?? "Dashboard";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background backdrop-blur-sm border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <Link to="/home" className="flex items-center gap-3">
-          <img 
-            src="/favicon.png" 
-            alt="Frensei Penguin" 
-            className="w-12 h-12 object-contain"
-          />
-          <span className="text-2xl font-bold text-white drop-shadow-lg">Frensei</span>
-        </Link>
-
-        {/* Center Navigation */}
-        <nav className="hidden lg:flex items-center gap-4">
-          <Link
-            to="/home"
-            className={`text-white hover:text-primary transition-colors pb-1 text-sm ${
-              isActive("/home") ? "nav-link-active" : ""
-            }`}
-          >
-            Home
-          </Link>
-          <Link
-            to="/profile-strength"
-            className={`text-white hover:text-primary transition-colors pb-1 text-sm ${
-              isActive("/profile-strength") ? "nav-link-active" : ""
-            }`}
-          >
-            PhD Dashboard
-          </Link>
-          <Link
-            to="/timeline"
-            className={`text-white hover:text-primary transition-colors pb-1 text-sm ${
-              isActive("/timeline") ? "nav-link-active" : ""
-            }`}
-          >
-            Timeline
-          </Link>
-          <Link
-            to="/collaboration-ledger"
-            className={`text-white hover:text-primary transition-colors pb-1 text-sm ${
-              isActive("/collaboration-ledger") ? "nav-link-active" : ""
-            }`}
-          >
-            Collaboration Tracker
-          </Link>
-          <Link
-            to="/wellbeing"
-            className={`text-white hover:text-primary transition-colors pb-1 text-sm ${
-              isActive("/wellbeing") ? "nav-link-active" : ""
-            }`}
-          >
-            PhD Doctor
-          </Link>
-          <Link
-            to="/network"
-            className={`text-white hover:text-primary transition-colors pb-1 text-sm ${
-              isActive("/network") ? "nav-link-active" : ""
-            }`}
-          >
-            Network
-          </Link>
-          <Link
-            to="/university-dashboard"
-            className={`text-white hover:text-primary transition-colors pb-1 text-sm ${
-              isActive("/university-dashboard") ? "nav-link-active" : ""
-            }`}
-          >
-            University
-          </Link>
-        </nav>
-
-        {/* Right Side Button */}
-        <Button 
-          className="bg-gradient-to-r from-[#DB5614] to-[#E69219] hover:opacity-90 text-white transition-all duration-300 shadow-lg hover:shadow-[0_0_20px_rgba(230,146,25,0.55)]"
-          onClick={() => setInstitutionalAccessOpen(true)}
-        >
-          Request Institutional Access
-        </Button>
+    <header className="flex h-14 items-center justify-between border-b bg-background px-6">
+      <h1 className="text-lg font-semibold">{displayTitle}</h1>
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        <UserProfileDropdown />
       </div>
-      
-      {/* Institutional Access Modal */}
-      <InstitutionalAccessModal open={institutionalAccessOpen} onOpenChange={setInstitutionalAccessOpen} />
     </header>
   );
-};
+}

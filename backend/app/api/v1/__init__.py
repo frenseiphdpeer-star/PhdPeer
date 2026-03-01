@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends
 from app.api.deps import require_roles
 from app.models.user import UserRole
-from app.api.v1.endpoints import analytics, documents
+from app.api.v1.endpoints import analytics, documents, baselines, timeline
 
 api_router = APIRouter()  # No global dependency here
 
@@ -23,5 +23,19 @@ api_router.include_router(
     documents.router,
     prefix="/documents",
     tags=["documents"],
+    dependencies=[role_dep]
+)
+
+api_router.include_router(
+    baselines.router,
+    prefix="/baselines",
+    tags=["baselines"],
+    dependencies=[role_dep]
+)
+
+api_router.include_router(
+    timeline.router,
+    prefix="/timeline",
+    tags=["timeline"],
     dependencies=[role_dep]
 )
