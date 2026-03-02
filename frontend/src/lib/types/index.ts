@@ -1,4 +1,4 @@
-export type { ApiError, PaginatedResponse } from "./api";
+export type { ApiError } from "./api";
 export type {
   ContinuityIndexData,
   RiskLevel,

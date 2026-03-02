@@ -1,5 +1,5 @@
-"""Authentication endpoints – register, login, refresh, logout, me."""
-from fastapi import APIRouter, Depends, HTTPException, status
+"""Authentication endpoints – register, login, refresh, logout, me, OAuth."""
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -8,6 +8,7 @@ from app.models.user import User
 from app.schemas.auth import (
     AuthResponse,
     LoginRequest,
+    OAuthCallbackRequest,
     RefreshRequest,
     RegisterRequest,
     UserOut,
@@ -56,3 +57,39 @@ def logout(
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return UserOut.model_validate(current_user)
+
+
+# ── OAuth ────────────────────────────────────────────────────────
+
+@router.get("/oauth/{provider}/url")
+def oauth_authorize_url(
+    provider: str,
+    redirect_uri: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    """Return the provider's authorization URL for the frontend to redirect to."""
+    svc = AuthService(db)
+    try:
+        url = svc.get_oauth_authorization_url(provider, redirect_uri)
+        return {"authorization_url": url}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+
+@router.post("/oauth/{provider}/callback", response_model=AuthResponse)
+async def oauth_callback(
+    provider: str,
+    payload: OAuthCallbackRequest,
+    db: Session = Depends(get_db),
+):
+    """Exchange an OAuth authorization code for an access/refresh token pair."""
+    svc = AuthService(db)
+    try:
+        return await svc.oauth_callback(provider, payload.code, payload.redirect_uri)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to authenticate with the OAuth provider",
+        )

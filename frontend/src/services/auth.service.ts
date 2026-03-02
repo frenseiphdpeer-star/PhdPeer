@@ -22,6 +22,8 @@ export interface AuthResponse {
   user: User;
 }
 
+export type OAuthProvider = "google" | "microsoft";
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const { data } = await apiClient.post<AuthResponse>(
@@ -56,6 +58,31 @@ export const authService = {
 
   async me(): Promise<User> {
     const { data } = await apiClient.get<User>("/auth/me");
+    return data;
+  },
+
+  getOAuthRedirectUri(provider: OAuthProvider): string {
+    return `${window.location.origin}/auth/callback/${provider}`;
+  },
+
+  async getOAuthUrl(provider: OAuthProvider): Promise<string> {
+    const redirectUri = this.getOAuthRedirectUri(provider);
+    const { data } = await apiClient.get<{ authorization_url: string }>(
+      `/auth/oauth/${provider}/url`,
+      { params: { redirect_uri: redirectUri } }
+    );
+    return data.authorization_url;
+  },
+
+  async oauthCallback(
+    provider: OAuthProvider,
+    code: string
+  ): Promise<AuthResponse> {
+    const redirectUri = this.getOAuthRedirectUri(provider);
+    const { data } = await apiClient.post<AuthResponse>(
+      `/auth/oauth/${provider}/callback`,
+      { code, redirect_uri: redirectUri }
+    );
     return data;
   },
 };

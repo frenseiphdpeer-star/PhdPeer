@@ -11,7 +11,5 @@ export {
 export {
   generateTimeline,
   getTimeline,
-  getTimelineStages,
-  getTimelineMilestones,
   type GenerateTimelineParams,
 } from "./timeline.service";

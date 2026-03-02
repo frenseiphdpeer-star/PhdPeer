@@ -28,10 +28,12 @@ class User(Base, BaseModel):
     __tablename__ = "users"
 
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=True)
     full_name = Column(String, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
+    oauth_provider = Column(String, nullable=True, index=True)
+    oauth_provider_id = Column(String, nullable=True)
     role = Column(
         SqlEnum(UserRole, name="user_role", create_constraint=False, native_enum=False),
         default=UserRole.RESEARCHER,

@@ -46,6 +46,11 @@ class UserOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class OAuthCallbackRequest(BaseModel):
+    code: str
+    redirect_uri: str
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 

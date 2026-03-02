@@ -17,6 +17,13 @@ class UserRepository(BaseRepository):
     def get_by_email(self, email: str) -> User | None:
         return self.db.query(User).filter(User.email == email).first()
 
+    def get_by_oauth(self, provider: str, provider_id: str) -> User | None:
+        return (
+            self.db.query(User)
+            .filter(User.oauth_provider == provider, User.oauth_provider_id == provider_id)
+            .first()
+        )
+
     def create_user(self, **kwargs) -> User:
         user = User(**kwargs)
         self.db.add(user)

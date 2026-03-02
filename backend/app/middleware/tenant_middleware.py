@@ -50,6 +50,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         "/redoc",
         "/api/v1/auth/login",
         "/api/v1/auth/register",
+        "/api/v1/auth/oauth",
     ]
 
     async def dispatch(

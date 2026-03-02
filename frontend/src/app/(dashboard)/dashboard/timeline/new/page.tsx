@@ -22,7 +22,7 @@ const ACCEPTED_TYPES = ["application/pdf", "application/vnd.openxmlformats-offic
 const MAX_SIZE_MB = 20;
 
 const schema = z.object({
-  file: z.any().refine(
+  file: z.custom<FileList>(
     (val) => val instanceof FileList && val.length === 1,
     "Select a file"
   ).refine(

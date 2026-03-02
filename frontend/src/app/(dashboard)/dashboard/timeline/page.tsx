@@ -1,13 +1,29 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ResearchTimelineContainer } from "@/components/timeline";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
+
+const ResearchTimelineContainer = dynamic(
+  () =>
+    import("@/components/timeline").then(
+      (mod) => mod.ResearchTimelineContainer
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+        <div className="h-96 animate-pulse rounded bg-muted" />
+      </div>
+    ),
+  }
+);
 
 function TimelineContent() {
   const searchParams = useSearchParams();

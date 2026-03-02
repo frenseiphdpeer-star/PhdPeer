@@ -9,6 +9,7 @@ const nextConfig = {
     optimizePackageImports: [
       "lucide-react",
       "recharts",
+      "@xyflow/react",
       "@radix-ui/react-accordion",
       "@radix-ui/react-avatar",
       "@radix-ui/react-dialog",
