@@ -16,6 +16,8 @@ interface TimelineStageCardProps {
   stage: TimelineStage;
   milestones: TimelineMilestone[];
   value: string;
+  onToggleMilestone?: (milestoneId: string, completed: boolean) => void;
+  togglingMilestoneId?: string | null;
 }
 
 const STATUS_VARIANTS: Record<string, "default" | "secondary" | "success" | "warning" | "destructive"> = {
@@ -34,6 +36,8 @@ export function TimelineStageCard({
   stage,
   milestones,
   value,
+  onToggleMilestone,
+  togglingMilestoneId,
 }: TimelineStageCardProps) {
   const statusVariant = getStatusVariant(stage.status);
   const confidence = stage.confidence ?? null;
@@ -92,6 +96,8 @@ export function TimelineStageCard({
                         <TimelineMilestoneItem
                           key={m.id}
                           milestone={m}
+                          onToggle={onToggleMilestone}
+                          isToggling={togglingMilestoneId === m.id}
                         />
                       ))}
                     </div>

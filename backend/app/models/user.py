@@ -6,16 +6,14 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from app.models.base import BaseModel
 
-# Role values: researcher | supervisor | institution_admin
-DEFAULT_ROLE = "researcher"
-
 
 class UserRole(str, Enum):
     """Supported platform roles."""
 
     RESEARCHER = "researcher"
     SUPERVISOR = "supervisor"
-    INSTITUTIONAL_ADMIN = "institutional_admin"
+    INSTITUTION_ADMIN = "institution_admin"
+    ENTERPRISE_CLIENT = "enterprise_client"
 
 
 class SubscriptionTier(str, Enum):
@@ -27,36 +25,21 @@ class SubscriptionTier(str, Enum):
 
 
 class User(Base, BaseModel):
-    """
-    User model representing platform users (PhD students, supervisors, admins).
-    
-    Attributes:
-        email: Unique email address
-        hashed_password: Hashed password for authentication
-        full_name: User's full name
-        role: researcher | supervisor | institution_admin (RBAC)
-        is_active: Whether the user account is active
-        is_superuser: Whether the user has admin privileges
-        institution: Academic institution
-        field_of_study: Research field/discipline
-    """
-    
     __tablename__ = "users"
-    
+
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=True)
-    role = Column(String, default=DEFAULT_ROLE, nullable=False, index=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     role = Column(
-        SqlEnum(UserRole, name="user_role"),
+        SqlEnum(UserRole, name="user_role", create_constraint=False, native_enum=False),
         default=UserRole.RESEARCHER,
         nullable=False,
         index=True,
     )
     subscription_tier = Column(
-        SqlEnum(SubscriptionTier, name="subscription_tier"),
+        SqlEnum(SubscriptionTier, name="subscription_tier", create_constraint=False, native_enum=False),
         default=SubscriptionTier.FREE,
         nullable=False,
         index=True,

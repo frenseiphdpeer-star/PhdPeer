@@ -22,9 +22,10 @@ class RoleBasedAccessMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, role_rules: Dict[str, Iterable[UserRole]] | None = None) -> None:
         super().__init__(app)
         default_rules = {
-            "/api/v1/researcher": {UserRole.RESEARCHER, UserRole.SUPERVISOR, UserRole.INSTITUTIONAL_ADMIN},
-            "/api/v1/supervisor": {UserRole.SUPERVISOR, UserRole.INSTITUTIONAL_ADMIN},
-            "/api/v1/institution": {UserRole.INSTITUTIONAL_ADMIN},
+            "/api/v1/researcher": {UserRole.RESEARCHER, UserRole.SUPERVISOR, UserRole.INSTITUTION_ADMIN, UserRole.ENTERPRISE_CLIENT},
+            "/api/v1/supervisor": {UserRole.SUPERVISOR, UserRole.INSTITUTION_ADMIN},
+            "/api/v1/institution": {UserRole.INSTITUTION_ADMIN},
+            "/api/v1/enterprise": {UserRole.ENTERPRISE_CLIENT},
         }
         self.role_rules: Dict[str, Set[UserRole]] = {
             prefix: set(roles) for prefix, roles in (role_rules or default_rules).items()

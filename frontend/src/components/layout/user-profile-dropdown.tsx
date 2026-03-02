@@ -17,14 +17,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export function UserProfileDropdown() {
   const { user, clearAuth } = useAuthStore();
 
-  const initials = user?.name
+  const initials = user?.full_name
     ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2) ?? "U";
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const { authService } = await import("@/services/auth.service");
+    await authService.logout();
     clearAuth();
     window.location.href = "/login";
   };
@@ -43,7 +45,7 @@ export function UserProfileDropdown() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.name ?? "User"}</p>
+            <p className="text-sm font-medium leading-none">{user?.full_name ?? "User"}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email ?? "user@example.com"}
             </p>

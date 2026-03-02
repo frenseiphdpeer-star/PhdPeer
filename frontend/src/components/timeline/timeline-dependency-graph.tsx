@@ -13,13 +13,13 @@ import {
   BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import type { TimelineStage, TimelineMilestone } from "@/lib/types";
+import type { TimelineStage, TimelineMilestone, Dependency } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface TimelineDependencyGraphProps {
   stages: TimelineStage[];
   milestones: TimelineMilestone[];
-  dependencies?: Array<{ from: string; to: string }>;
+  dependencies?: Dependency[];
   className?: string;
 }
 
@@ -31,7 +31,7 @@ const VERTICAL_GAP = 50;
 function buildFlowNodesAndEdges(
   stages: TimelineStage[],
   milestones: TimelineMilestone[],
-  dependencies?: Array<{ from: string; to: string }>
+  dependencies?: Dependency[]
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];

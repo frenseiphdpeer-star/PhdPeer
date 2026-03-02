@@ -1,7 +1,17 @@
 "use client";
 
-import { ContinuityIndexView } from "@/components/dashboard/continuity-index-view";
+import dynamic from "next/dynamic";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { continuityDummyData } from "@/lib/data/continuity-dummy";
+
+const ContinuityIndexView = dynamic(
+  () =>
+    import("@/components/dashboard/continuity-index-view").then(
+      (m) => m.ContinuityIndexView
+    ),
+  { loading: () => <DashboardSkeleton /> }
+);
 
 export default function DashboardPage() {
   return (
@@ -15,7 +25,9 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <ContinuityIndexView data={continuityDummyData} />
+      <ErrorBoundary section="Dashboard">
+        <ContinuityIndexView data={continuityDummyData} />
+      </ErrorBoundary>
     </div>
   );
 }

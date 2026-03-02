@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { authService } from "@/services";
 import { useAuthStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import {
 export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,20 +30,12 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await authService.login({ username, password });
-      setAuth(
-        {
-          id: res.user?.id ?? res.user_id ?? "unknown",
-          email: res.user?.email ?? `${username}@example.com`,
-          name: res.user?.name ?? username,
-          role: res.user?.role ?? res.role ?? "RESEARCHER",
-        },
-        res.access_token
-      );
+      const res = await authService.login({ email, password });
+      setAuth(res.user, res.access_token, res.refresh_token);
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Invalid username or password");
+      setError("Invalid email or password");
     } finally {
       setLoading(false);
     }
@@ -52,23 +45,23 @@ export default function LoginPage() {
     <Card>
       <CardHeader className="space-y-1 text-center">
         <CardTitle className="text-2xl font-bold">Frensei</CardTitle>
-        <CardDescription>Sign in to your research intelligence account</CardDescription>
+        <CardDescription>
+          Sign in to your research intelligence account
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              type="text"
-              placeholder="admin"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="you@university.edu"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              autoComplete="username"
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
@@ -88,7 +81,13 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            Demo: admin / admin123
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              Create one
+            </Link>
           </p>
         </CardFooter>
       </form>

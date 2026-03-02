@@ -33,6 +33,7 @@ from app.models.opportunity import (
     OpportunityFeedSnapshot,
     OpportunityFeedItem,
 )
+from app.models.refresh_token import RefreshToken
 from app.models.risk_fusion import RiskWeightConfig, RiskAssessmentSnapshot
 from app.models.scoring_config import ScoringConfig
 
@@ -42,6 +43,7 @@ __all__ = [
     'User',
     'UserRole',
     'SubscriptionTier',
+    'RefreshToken',
     'DocumentArtifact',
     'Baseline',
     'DraftTimeline',

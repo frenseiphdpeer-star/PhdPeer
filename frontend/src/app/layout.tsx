@@ -32,7 +32,12 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          <Toaster position="top-center" richColors closeButton />
+          <Toaster
+            position="top-center"
+            richColors
+            closeButton
+            toastOptions={{ duration: 4000 }}
+          />
         </Providers>
       </body>
     </html>

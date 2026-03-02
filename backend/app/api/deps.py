@@ -3,7 +3,6 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -11,40 +10,38 @@ from app.database import get_db
 import app.models  # noqa: F401
 from app.models.user import User, UserRole
 from app.repositories.user_repository import UserRepository
+from app.services.auth_service import decode_access_token
 
 
 bearer_scheme = HTTPBearer(auto_error=False)
+
+_CREDENTIALS_EXCEPTION = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
 
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    """Resolve and return the authenticated user from a Bearer JWT."""
-    unauthorized_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
+    """Resolve and return the authenticated user from a Bearer JWT (access tokens only)."""
     if credentials is None or credentials.scheme.lower() != "bearer":
-        raise unauthorized_exception
+        raise _CREDENTIALS_EXCEPTION
 
-    token = credentials.credentials
+    payload = decode_access_token(credentials.credentials)
+    if payload is None:
+        raise _CREDENTIALS_EXCEPTION
 
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        subject = payload.get("sub")
-        if not subject:
-            raise unauthorized_exception
-        user_id = UUID(str(subject))
-    except (JWTError, ValueError):
-        raise unauthorized_exception
+        user_id = UUID(payload["sub"])
+    except (KeyError, ValueError):
+        raise _CREDENTIALS_EXCEPTION
 
-    user_repository = UserRepository(db)
-    user = user_repository.get_by_id(user_id)
+    user = UserRepository(db).get_by_id(user_id)
     if not user or not user.is_active:
-        raise unauthorized_exception
+        raise _CREDENTIALS_EXCEPTION
 
     return user
 

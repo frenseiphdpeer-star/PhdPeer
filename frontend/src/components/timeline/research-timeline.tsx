@@ -12,6 +12,8 @@ interface ResearchTimelineProps {
   data: TimelineResponse;
   showDependencyGraph?: boolean;
   className?: string;
+  onToggleMilestone?: (milestoneId: string, completed: boolean) => void;
+  togglingMilestoneId?: string | null;
 }
 
 function groupMilestonesByStage(
@@ -22,7 +24,7 @@ function groupMilestonesByStage(
   stages.forEach((s) => map.set(s.id, []));
 
   milestones.forEach((m) => {
-    const stageId = m.stage_id ?? stages[0]?.id;
+    const stageId = m.stage_id || stages[0]?.id;
     if (stageId && map.has(stageId)) {
       map.get(stageId)!.push(m);
     } else if (stages.length > 0) {
@@ -40,6 +42,8 @@ export function ResearchTimeline({
   data,
   showDependencyGraph = true,
   className,
+  onToggleMilestone,
+  togglingMilestoneId,
 }: ResearchTimelineProps) {
   const milestonesByStage = useMemo(
     () => groupMilestonesByStage(data.stages, data.milestones),
@@ -54,7 +58,7 @@ export function ResearchTimeline({
   return (
     <div className={cn("space-y-8", className)}>
       {showDependencyGraph &&
-        (data.dependencies?.length ?? 0) > 0 && (
+        data.dependencies.length > 0 && (
           <section>
             <h3 className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               <GitBranch className="h-3.5 w-3.5" />
@@ -80,6 +84,8 @@ export function ResearchTimeline({
               stage={stage}
               milestones={milestonesByStage.get(stage.id) ?? []}
               value={stage.id}
+              onToggleMilestone={onToggleMilestone}
+              togglingMilestoneId={togglingMilestoneId}
             />
           ))}
         </Accordion>

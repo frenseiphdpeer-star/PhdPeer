@@ -1,32 +1,58 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import datetime, timedelta
-import jwt
+"""Authentication endpoints – register, login, refresh, logout, me."""
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.api.deps import get_current_user
+from app.models.user import User
+from app.schemas.auth import (
+    AuthResponse,
+    LoginRequest,
+    RefreshRequest,
+    RegisterRequest,
+    UserOut,
+)
+from app.services.auth_service import AuthService
 
 router = APIRouter()
 
-SECRET_KEY = "your_secret_key_here"
-ALGORITHM = "HS256"
 
-fake_users_db = {
-    "admin": {"username": "admin", "password": "admin123"}
-}
+@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+    svc = AuthService(db)
+    try:
+        return svc.register(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
 
-def create_access_token(data: dict, expires_minutes: int = 30):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-@router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = fake_users_db.get(form_data.username)
-    if not user or user["password"] != form_data.password:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
-    token = create_access_token({"sub": user["username"]})
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "user_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        "role": "RESEARCHER"
-    }
+@router.post("/login", response_model=AuthResponse)
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    svc = AuthService(db)
+    try:
+        return svc.authenticate(payload.email, payload.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
+
+
+@router.post("/refresh", response_model=AuthResponse)
+def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
+    svc = AuthService(db)
+    try:
+        return svc.refresh(payload.refresh_token)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    svc = AuthService(db)
+    svc.revoke_all_tokens(current_user.id)
+
+
+@router.get("/me", response_model=UserOut)
+def me(current_user: User = Depends(get_current_user)):
+    return UserOut.model_validate(current_user)

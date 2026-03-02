@@ -14,5 +14,4 @@ export {
   getTimelineStages,
   getTimelineMilestones,
   type GenerateTimelineParams,
-  type GenerateTimelineResponse,
 } from "./timeline.service";

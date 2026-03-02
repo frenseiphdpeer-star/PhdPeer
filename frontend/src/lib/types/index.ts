@@ -6,9 +6,19 @@ export type {
 } from "./continuity";
 export type { DocumentUploadResponse } from "./documents";
 export type {
+  StageType,
+  StageStatus,
+  DeliverableType,
+  MilestoneState,
+  SuggestionStatus,
+  SuggestionReason,
   TimelineStage,
   TimelineMilestone,
+  Dependency,
+  DurationEstimate,
   TimelineResponse,
+  GenerateTimelineResponse,
+  TimelineSuggestion,
 } from "./timeline";
 export type {
   WritingVersion,

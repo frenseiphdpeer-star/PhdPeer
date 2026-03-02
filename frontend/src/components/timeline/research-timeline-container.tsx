@@ -1,6 +1,8 @@
 "use client";
 
 import { useTimeline } from "@/lib/hooks/use-timeline";
+import { useMilestoneCompletion } from "@/lib/hooks/use-milestone-completion";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { ResearchTimeline } from "./research-timeline";
 import { ResearchTimelineEmpty } from "./research-timeline-empty";
 import { ResearchTimelineError } from "./research-timeline-error";
@@ -18,6 +20,7 @@ export function ResearchTimelineContainer({
   className,
 }: ResearchTimelineContainerProps) {
   const { data, isLoading, isError, error, refetch } = useTimeline(baselineId);
+  const milestone = useMilestoneCompletion(baselineId);
 
   if (!baselineId) {
     return (
@@ -47,10 +50,20 @@ export function ResearchTimelineContainer({
   }
 
   return (
-    <ResearchTimeline
-      data={data}
-      showDependencyGraph={showDependencyGraph}
-      className={className}
-    />
+    <ErrorBoundary section="Timeline">
+      <ResearchTimeline
+        data={data}
+        showDependencyGraph={showDependencyGraph}
+        className={className}
+        onToggleMilestone={(milestoneId, completed) =>
+          milestone.mutate({ milestoneId, completed })
+        }
+        togglingMilestoneId={
+          milestone.isPending
+            ? (milestone.variables?.milestoneId ?? null)
+            : null
+        }
+      />
+    </ErrorBoundary>
   );
 }

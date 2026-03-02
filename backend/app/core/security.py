@@ -25,9 +25,10 @@ from app.models.user import User
 class Role(str, Enum):
     """Platform roles."""
 
-    RESEARCHER = "researcher"           # PhD Researcher
-    SUPERVISOR = "supervisor"           # Supervisor
-    INSTITUTION_ADMIN = "institution_admin"  # Institution Admin
+    RESEARCHER = "researcher"
+    SUPERVISOR = "supervisor"
+    INSTITUTION_ADMIN = "institution_admin"
+    ENTERPRISE_CLIENT = "enterprise_client"
 
 
 class Permission(str, Enum):
@@ -50,6 +51,7 @@ ROLE_PERMISSIONS: dict[Role, Set[Permission]] = {
         Permission.STUDENT_RISK_VISIBILITY,
         Permission.COHORT_AGGREGATION,
     },
+    Role.ENTERPRISE_CLIENT: set(),
 }
 
 
