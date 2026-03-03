@@ -33,6 +33,8 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/phd_timeline_db
+      - SECRET_KEY=IueGIXUghPvazdg1jOep3Zh2GahOZd8SFbXoXJRv0WE
+      - FRONTEND_URL=http://localhost:3000
       - DEBUG=True
       - ENVIRONMENT=development
     volumes:

@@ -59,3 +59,7 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# ML model artifacts
+ml_artifacts/
+*.joblib
