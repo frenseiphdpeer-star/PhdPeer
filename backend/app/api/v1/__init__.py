@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends
 from app.api.deps import require_roles
 from app.models.user import UserRole
-from app.api.v1.endpoints import analytics, documents, baselines, timeline, timeline_feedback, predictions, writing_coherence, research_novelty, dropout_risk, opportunity_matching, collaboration_network, fusion_engine, research_twin
+from app.api.v1.endpoints import analytics, documents, baselines, timeline, timeline_feedback, predictions, writing_coherence, research_novelty, dropout_risk, opportunity_matching, collaboration_network, fusion_engine, research_twin, publisher_readiness
 
 api_router = APIRouter()
 
@@ -101,5 +101,12 @@ api_router.include_router(
     research_twin.router,
     prefix="/research-twin",
     tags=["research-twin"],
+    dependencies=[role_dep]
+)
+
+api_router.include_router(
+    publisher_readiness.router,
+    prefix="/publisher-readiness",
+    tags=["publisher-readiness"],
     dependencies=[role_dep]
 )
