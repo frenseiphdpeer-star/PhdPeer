@@ -25,10 +25,11 @@ export function UserProfileDropdown() {
     .slice(0, 2) ?? "U";
 
   const handleLogout = async () => {
-    const { authService } = await import("@/services/auth.service");
-    await authService.logout();
-    clearAuth();
-    window.location.href = "/login";
+    // --- AUTH TEMPORARILY BYPASSED ---
+    // const { authService } = await import("@/services/auth.service");
+    // await authService.logout();
+    // clearAuth();
+    // window.location.href = "/login";
   };
 
   return (

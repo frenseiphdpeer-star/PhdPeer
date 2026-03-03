@@ -1,3 +1,11 @@
+// --- AUTH TEMPORARILY BYPASSED — original register page commented out below ---
+import { redirect } from "next/navigation";
+
+export default function RegisterPage() {
+  redirect("/dashboard");
+}
+
+/* ORIGINAL REGISTER PAGE — uncomment to restore
 "use client";
 
 import { useState } from "react";
@@ -59,7 +67,8 @@ const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "enterprise_client", label: "Enterprise Client" },
 ];
 
-export default function RegisterPage() {
+// Original RegisterPage component:
+function RegisterPage_Original() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
 
@@ -286,3 +295,4 @@ export default function RegisterPage() {
     </Card>
   );
 }
+END OF ORIGINAL REGISTER PAGE */

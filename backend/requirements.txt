@@ -32,7 +32,6 @@ python-docx==1.1.0
 # Testing
 pytest==7.4.4
 pytest-asyncio==0.23.3
-httpx==0.26.0
 
 # LLM Integration
 groq==0.11.0

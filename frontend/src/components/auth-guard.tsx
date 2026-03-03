@@ -10,23 +10,24 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
-  const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/login");
-      return;
-    }
-
-    if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-      router.replace("/dashboard");
-    }
-  }, [isAuthenticated, user, allowedRoles, router]);
-
-  if (!isAuthenticated) return null;
-
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) return null;
+  // --- AUTH TEMPORARILY BYPASSED ---
+  // const router = useRouter();
+  // const { isAuthenticated, user } = useAuthStore();
+  //
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     router.replace("/login");
+  //     return;
+  //   }
+  //
+  //   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+  //     router.replace("/dashboard");
+  //   }
+  // }, [isAuthenticated, user, allowedRoles, router]);
+  //
+  // if (!isAuthenticated) return null;
+  //
+  // if (allowedRoles && user && !allowedRoles.includes(user.role)) return null;
 
   return <>{children}</>;
 }

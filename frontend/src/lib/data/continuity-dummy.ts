@@ -1,23 +1,58 @@
 import type { ContinuityIndexData } from "@/lib/types/continuity";
 
-/** Generate dummy momentum data for 3-4 year PhD timeline */
-function generateMomentumSeries(): ContinuityIndexData["momentumSeries"] {
-  const points: ContinuityIndexData["momentumSeries"] = [];
-  const start = new Date("2022-09-01");
-  const end = new Date("2026-06-01");
-  let value = 45;
-
-  for (let d = new Date(start); d <= end; d.setMonth(d.getMonth() + 1)) {
-    value += (Math.random() - 0.45) * 8;
-    value = Math.max(20, Math.min(95, value));
-    points.push({
-      date: d.toISOString().slice(0, 7),
-      value: Math.round(value * 10) / 10,
-    });
-  }
-
-  return points;
-}
+/**
+ * Deterministic momentum data for the 3-4 year PhD timeline.
+ * Using fixed values instead of Math.random() to avoid SSR/client
+ * hydration mismatch (random values differ between server and client).
+ */
+const MOMENTUM_SERIES: ContinuityIndexData["momentumSeries"] = [
+  { date: "2022-09", value: 45.0 },
+  { date: "2022-10", value: 47.2 },
+  { date: "2022-11", value: 50.8 },
+  { date: "2022-12", value: 48.3 },
+  { date: "2023-01", value: 51.6 },
+  { date: "2023-02", value: 55.1 },
+  { date: "2023-03", value: 53.4 },
+  { date: "2023-04", value: 57.9 },
+  { date: "2023-05", value: 60.2 },
+  { date: "2023-06", value: 58.7 },
+  { date: "2023-07", value: 55.3 },
+  { date: "2023-08", value: 52.1 },
+  { date: "2023-09", value: 56.8 },
+  { date: "2023-10", value: 61.4 },
+  { date: "2023-11", value: 64.0 },
+  { date: "2023-12", value: 62.5 },
+  { date: "2024-01", value: 66.1 },
+  { date: "2024-02", value: 63.8 },
+  { date: "2024-03", value: 67.9 },
+  { date: "2024-04", value: 70.3 },
+  { date: "2024-05", value: 68.4 },
+  { date: "2024-06", value: 65.2 },
+  { date: "2024-07", value: 62.9 },
+  { date: "2024-08", value: 60.1 },
+  { date: "2024-09", value: 64.7 },
+  { date: "2024-10", value: 68.3 },
+  { date: "2024-11", value: 71.6 },
+  { date: "2024-12", value: 69.8 },
+  { date: "2025-01", value: 73.2 },
+  { date: "2025-02", value: 71.5 },
+  { date: "2025-03", value: 74.8 },
+  { date: "2025-04", value: 72.1 },
+  { date: "2025-05", value: 75.6 },
+  { date: "2025-06", value: 78.3 },
+  { date: "2025-07", value: 76.0 },
+  { date: "2025-08", value: 73.4 },
+  { date: "2025-09", value: 77.1 },
+  { date: "2025-10", value: 80.5 },
+  { date: "2025-11", value: 78.9 },
+  { date: "2025-12", value: 82.3 },
+  { date: "2026-01", value: 79.7 },
+  { date: "2026-02", value: 83.1 },
+  { date: "2026-03", value: 85.6 },
+  { date: "2026-04", value: 83.2 },
+  { date: "2026-05", value: 86.8 },
+  { date: "2026-06", value: 88.4 },
+];
 
 export const continuityDummyData: ContinuityIndexData = {
   score: 72,
@@ -27,7 +62,7 @@ export const continuityDummyData: ContinuityIndexData = {
   supervisionLatencyDays: 12,
   opportunityEngagementScore: 58,
   healthTrajectory: 0.12,
-  momentumSeries: generateMomentumSeries(),
+  momentumSeries: MOMENTUM_SERIES,
   totalMilestones: 24,
   completedMilestones: 16,
   opportunitiesActedOn: 7,

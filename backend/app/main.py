@@ -48,6 +48,10 @@ async def lifespan(app: FastAPI):
             )
     except Exception:
         pass
+    # Startup: Initialize resources
+    import app.models  # noqa: F401 – ensure all models are registered with Base
+    from app.database import init_db
+    init_db()
     yield
     # Shutdown: clean up resources
 

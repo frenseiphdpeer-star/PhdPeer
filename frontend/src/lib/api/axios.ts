@@ -93,10 +93,11 @@ apiClient.interceptors.response.use(undefined, async (error: AxiosError) => {
     return apiClient(config);
   } catch {
     refreshPromise = null;
-    useAuthStore.getState().clearAuth();
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
-    }
+    // --- AUTH TEMPORARILY BYPASSED ---
+    // useAuthStore.getState().clearAuth();
+    // if (typeof window !== "undefined") {
+    //   window.location.href = "/login";
+    // }
     return Promise.reject(error);
   }
 });

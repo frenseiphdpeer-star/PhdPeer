@@ -1,3 +1,11 @@
+// --- AUTH TEMPORARILY BYPASSED — original login page commented out below ---
+import { redirect } from "next/navigation";
+
+export default function LoginPage() {
+  redirect("/dashboard");
+}
+
+/* ORIGINAL LOGIN PAGE — uncomment to restore
 "use client";
 
 import { useState } from "react";
@@ -52,7 +60,8 @@ function MicrosoftIcon({ className }: { className?: string }) {
   );
 }
 
-export default function LoginPage() {
+// Original LoginPage component:
+function LoginPage_Original() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = useState("");
@@ -187,3 +196,4 @@ export default function LoginPage() {
     </Card>
   );
 }
+END OF ORIGINAL LOGIN PAGE */

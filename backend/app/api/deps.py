@@ -27,34 +27,51 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     """Resolve and return the authenticated user from a Bearer JWT (access tokens only)."""
-    if credentials is None or credentials.scheme.lower() != "bearer":
-        raise _CREDENTIALS_EXCEPTION
+    # --- AUTH TEMPORARILY BYPASSED ---
+    # Return the first user in the DB (or create a dev user) so the app works without login.
+    user = db.query(User).first()
+    if user:
+        return user
+    # Fallback: create a dev user if the table is empty
+    from app.services.auth_service import hash_password
+    dev_user = User(
+        email="dev@localhost",
+        hashed_password=hash_password("devpassword"),
+        full_name="Dev User",
+        role=UserRole.RESEARCHER,
+        is_active=True,
+    )
+    db.add(dev_user)
+    db.commit()
+    db.refresh(dev_user)
+    return dev_user
 
-    payload = decode_access_token(credentials.credentials)
-    if payload is None:
-        raise _CREDENTIALS_EXCEPTION
-
-    try:
-        user_id = UUID(payload["sub"])
-    except (KeyError, ValueError):
-        raise _CREDENTIALS_EXCEPTION
-
-    user = UserRepository(db).get_by_id(user_id)
-    if not user or not user.is_active:
-        raise _CREDENTIALS_EXCEPTION
-
-    return user
+    # --- ORIGINAL AUTH CODE (uncomment to restore) ---
+    # if credentials is None or credentials.scheme.lower() != "bearer":
+    #     raise _CREDENTIALS_EXCEPTION
+    # payload = decode_access_token(credentials.credentials)
+    # if payload is None:
+    #     raise _CREDENTIALS_EXCEPTION
+    # try:
+    #     user_id = UUID(payload["sub"])
+    # except (KeyError, ValueError):
+    #     raise _CREDENTIALS_EXCEPTION
+    # user = UserRepository(db).get_by_id(user_id)
+    # if not user or not user.is_active:
+    #     raise _CREDENTIALS_EXCEPTION
+    # return user
 
 
 def require_roles(*allowed_roles: UserRole):
     """Dependency factory that enforces one of the provided roles."""
 
     def role_dependency(current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role not in allowed_roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient role permissions",
-            )
+        # --- ROLE CHECK TEMPORARILY BYPASSED ---
+        # if current_user.role not in allowed_roles:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_403_FORBIDDEN,
+        #         detail="Insufficient role permissions",
+        #     )
         return current_user
 
     return role_dependency
