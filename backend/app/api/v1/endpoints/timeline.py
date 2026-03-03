@@ -153,7 +153,10 @@ def generate_timeline(
             draft_timeline_id=UUID(str(tl["id"])),
         )
     except TimelineOrchestratorError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        msg = str(exc)
+        if "Baseline not found" in msg:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
 
 @router.get(

@@ -2,9 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { FileUp, Loader2, Sparkles } from "lucide-react";
@@ -18,29 +15,23 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const ACCEPTED_TYPES = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+const ACCEPTED_EXTENSIONS = [".pdf", ".docx"];
 const MAX_SIZE_MB = 20;
 
-const schema = z.object({
-  file: z.custom<FileList>(
-    (val) => val instanceof FileList && val.length === 1,
-    "Select a file"
-  ).refine(
-    (val) => {
-      const file = val?.[0];
-      return file && ACCEPTED_TYPES.includes(file.type);
-    },
-    "PDF or DOCX only"
-  ).refine(
-    (val) => {
-      const file = val?.[0];
-      return file && file.size <= MAX_SIZE_MB * 1024 * 1024;
-    },
-    `Max ${MAX_SIZE_MB}MB`
-  ),
-});
+function isAcceptedFile(file: File): boolean {
+  const name = file.name.toLowerCase();
+  const okExt = ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext));
+  const okSize = file.size <= MAX_SIZE_MB * 1024 * 1024;
+  return okExt && okSize;
+}
 
-type FormValues = z.infer<typeof schema>;
+function fileError(file: File): string | null {
+  const name = file.name.toLowerCase();
+  const okExt = ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext));
+  if (!okExt) return "PDF or DOCX only";
+  if (file.size > MAX_SIZE_MB * 1024 * 1024) return `Max ${MAX_SIZE_MB}MB`;
+  return null;
+}
 
 type Step = "upload" | "parsing" | "creating" | "generating" | "success" | "error";
 
@@ -51,11 +42,9 @@ export default function NewTimelinePage() {
   const [step, setStep] = useState<Step>("upload");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [detectedStages, setDetectedStages] = useState<string[]>([]);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { file: undefined as unknown as FileList },
-  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileErrorMsg, setFileErrorMsg] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -123,21 +112,27 @@ export default function NewTimelinePage() {
     },
   });
 
-  const [isDragging, setIsDragging] = useState(false);
+  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setFileErrorMsg(fileError(file));
+    } else {
+      setSelectedFile(null);
+      setFileErrorMsg(null);
+    }
+    e.target.value = "";
+  }, []);
 
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const file = e.dataTransfer.files[0];
-      if (file && ACCEPTED_TYPES.includes(file.type)) {
-        form.setValue("file", e.dataTransfer.files as unknown as FileList, {
-          shouldValidate: true,
-        });
-      }
-    },
-    [form]
-  );
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setFileErrorMsg(fileError(file));
+    }
+  }, []);
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -149,13 +144,19 @@ export default function NewTimelinePage() {
     setIsDragging(false);
   }, []);
 
-  const onSubmit = (values: FormValues) => {
-    const file = values.file[0];
-    if (file) uploadMutation.mutate(file);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    const err = fileError(selectedFile);
+    if (err) {
+      setFileErrorMsg(err);
+      return;
+    }
+    uploadMutation.mutate(selectedFile);
   };
 
-  const selectedFile = form.watch("file")?.[0];
   const isProcessing = ["parsing", "creating", "generating"].includes(step);
+  const canSubmit = selectedFile && isAcceptedFile(selectedFile) && !uploadMutation.isPending;
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -175,13 +176,13 @@ export default function NewTimelinePage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {step === "upload" && (
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 className={cn(
-                  "flex min-h-[200px] flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors",
+                  "relative flex min-h-[200px] flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors",
                   isDragging && "border-primary bg-primary/5",
                   selectedFile && "border-primary/50 bg-primary/5",
                   !selectedFile && !isDragging && "border-muted-foreground/25"
@@ -192,35 +193,26 @@ export default function NewTimelinePage() {
                   {selectedFile ? selectedFile.name : "Drag and drop your file here"}
                 </p>
                 <p className="mb-4 text-xs text-muted-foreground">
-                  or click to browse
+                  or click the button below to choose a file (PDF or DOCX, max {MAX_SIZE_MB}MB)
                 </p>
-                <input
-                  type="file"
-                  accept=".pdf,.docx"
-                  className="hidden"
-                  id="file-upload"
-                  {...form.register("file", {
-                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                      const files = e.target.files;
-                      if (files?.length)
-                        form.setValue("file", files, { shouldValidate: true });
-                    },
-                  })}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById("file-upload")?.click()}
-                >
-                  Choose file
-                </Button>
-                {form.formState.errors.file && (
-                  <p className="mt-2 text-sm text-destructive">
-                    {String(form.formState.errors.file.message ?? "")}
-                  </p>
+                <div className="relative inline-block">
+                  <span className="pointer-events-none inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background">
+                    Choose file
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={onFileChange}
+                    aria-label="Choose PDF or DOCX file"
+                    className="absolute inset-0 cursor-pointer rounded-md opacity-0"
+                    title="Choose PDF or DOCX file"
+                  />
+                </div>
+                {fileErrorMsg && (
+                  <p className="mt-2 text-sm text-destructive">{fileErrorMsg}</p>
                 )}
               </div>
-              <Button type="submit" disabled={!selectedFile || uploadMutation.isPending}>
+              <Button type="submit" disabled={!canSubmit}>
                 {uploadMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -299,7 +291,8 @@ export default function NewTimelinePage() {
                 variant="outline"
                 onClick={() => {
                   setStep("upload");
-                  form.reset();
+                  setSelectedFile(null);
+                  setFileErrorMsg(null);
                 }}
               >
                 Try again

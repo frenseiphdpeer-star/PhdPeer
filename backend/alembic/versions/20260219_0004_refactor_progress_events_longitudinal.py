@@ -99,8 +99,12 @@ def upgrade() -> None:
                         ELSE 'update'::progress_event_type
                     END,
                     tags_new = CASE
-                        WHEN pe.tags IS NULL OR btrim(pe.tags) = '' THEN NULL
-                        ELSE regexp_split_to_array(pe.tags, '\\s*,\\s*')
+                        WHEN pe.tags IS NULL THEN NULL
+                        WHEN pg_typeof(pe.tags)::text LIKE '%%[]' THEN
+                            CASE WHEN array_length(pe.tags::varchar[], 1) IS NULL OR array_length(pe.tags::varchar[], 1) = 0 THEN NULL
+                            ELSE pe.tags::varchar[] END
+                        ELSE CASE WHEN btrim(pe.tags::varchar) = '' THEN NULL
+                            ELSE regexp_split_to_array(pe.tags::varchar, '\\s*,\\s*') END
                     END
                 FROM batch
                 WHERE pe.id = batch.id;

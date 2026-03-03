@@ -32,6 +32,14 @@ class RoleBasedAccessMiddleware(BaseHTTPMiddleware):
         }
 
     async def dispatch(self, request: Request, call_next) -> Response:
+        # Preflight OPTIONS must pass through so CORS middleware can add headers
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
+        # Temporary debug logging (remove after CORS is verified)
+        print("METHOD:", request.method)
+        print("PATH:", request.url.path)
+
         path = request.url.path
         required_roles = self._get_required_roles(path)
 

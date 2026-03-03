@@ -30,6 +30,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
+    # bcrypt has a 72-byte limit; passlib/bcrypt 5.0+ raises if longer
+    pwd_bytes = password.encode("utf-8")
+    if len(pwd_bytes) > 72:
+        password = pwd_bytes[:72].decode("utf-8", errors="replace")
     return pwd_context.hash(password)
 
 

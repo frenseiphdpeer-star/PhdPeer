@@ -1,7 +1,12 @@
 """Application configuration management."""
+from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Load .env from backend directory so it works regardless of process CWD
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+_ENV_FILE = _BACKEND_DIR / ".env"
 
 
 class Settings(BaseSettings):
@@ -50,10 +55,20 @@ class Settings(BaseSettings):
     LLM_TIMEOUT_SECONDS: int = 60
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_ENV_FILE) if _ENV_FILE.exists() else ".env",
         case_sensitive=True,
         extra="ignore"
     )
 
 
 settings = Settings()
+
+
+def is_llm_configured() -> bool:
+    """Return True if a real LLM API key is set (not empty or placeholder)."""
+    key = (settings.LLM_API_KEY or "").strip()
+    if not key:
+        return False
+    if "your_groq_api_key" in key.lower() or key.startswith("gsk_your_"):
+        return False
+    return True

@@ -30,7 +30,6 @@ def upgrade() -> None:
         sa.Column("timestamp", sa.DateTime(timezone=True), nullable=False),
         sa.Column("source_module", sa.String(length=128), nullable=False),
         sa.PrimaryKeyConstraint("event_id"),
-        sa.Comment("Append-only event log; do not update or delete rows."),
     )
     op.create_index(op.f("ix_longitudinal_events_entity_id"), "longitudinal_events", ["entity_id"], unique=False)
     op.create_index(op.f("ix_longitudinal_events_entity_type"), "longitudinal_events", ["entity_type"], unique=False)

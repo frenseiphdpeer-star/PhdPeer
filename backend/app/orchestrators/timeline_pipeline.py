@@ -1,6 +1,6 @@
 """Timeline pipeline domain logic."""
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from app.models.draft_timeline import DraftTimeline
@@ -55,35 +55,47 @@ class TimelinePipeline:
         if not baseline:
             raise TimelinePipelineError("Baseline not found for user")
 
-        if not baseline.document_artifact_id:
-            raise TimelinePipelineError("Baseline has no associated document artifact")
-
-        document = self.repository.get_document_artifact(baseline.document_artifact_id)
-        if not document or not document.document_text:
-            raise TimelinePipelineError("Document text not found for baseline")
-
         resolved_title = title or f"Draft Timeline: {baseline.program_name}"
         resolved_description = description or (
             f"Draft timeline for {baseline.program_name} at {baseline.institution}. "
             "Generated from baseline requirements and program structure."
         )
 
-        detected_stages = self.intelligence_engine.detect_stages(
-            text=document.document_text,
-            section_map=document.section_map_json,
-        )
-        extracted_milestones = self.intelligence_engine.extract_milestones(
-            text=document.document_text,
-            section_map=document.section_map_json,
-        )
-        duration_estimates = self.intelligence_engine.estimate_durations(
-            text=document.document_text,
-            section_map=document.section_map_json,
-        )
-        dependencies = self.intelligence_engine.map_dependencies(
-            text=document.document_text,
-            section_map=document.section_map_json,
-        )
+        # Document path: baseline has document with text
+        document = None
+        if baseline.document_artifact_id:
+            document = self.repository.get_document_artifact(baseline.document_artifact_id)
+
+        if document and document.document_text:
+            detected_stages = self.intelligence_engine.detect_stages(
+                text=document.document_text,
+                section_map=document.section_map_json,
+            )
+            extracted_milestones = self.intelligence_engine.extract_milestones(
+                text=document.document_text,
+                section_map=document.section_map_json,
+            )
+            duration_estimates = self.intelligence_engine.estimate_durations(
+                text=document.document_text,
+                section_map=document.section_map_json,
+            )
+            dependencies = self.intelligence_engine.map_dependencies(
+                text=document.document_text,
+                section_map=document.section_map_json,
+            )
+        else:
+            # Cold start: no document or no text — generate from baseline metadata
+            from app.services.llm.cold_start import generate_cold_start_timeline
+            cold_result = generate_cold_start_timeline(
+                field_of_study=baseline.field_of_study,
+                institution=baseline.institution,
+                program_name=baseline.program_name,
+                start_date=baseline.start_date.isoformat() if baseline.start_date else None,
+                total_duration_months=baseline.total_duration_months,
+            )
+            detected_stages, extracted_milestones, duration_estimates, dependencies = (
+                self._cold_start_to_pipeline_data(cold_result)
+            )
 
         draft = self.repository.create_draft_timeline(
             user_id=user_id,
@@ -106,6 +118,87 @@ class TimelinePipeline:
             duration_estimates=duration_estimates,
             dependencies=dependencies,
         )
+
+    def _cold_start_to_pipeline_data(
+        self, cold_result: Dict[str, Any]
+    ) -> tuple[List[DetectedStage], List[ExtractedMilestone], List[DurationEstimate], List[Dependency]]:
+        """Convert cold-start generator output to pipeline dataclasses."""
+        detected_stages: List[DetectedStage] = []
+        for i, s in enumerate(cold_result.get("stages", [])):
+            st = (s.get("stage_type") or "other").lower().replace(" ", "_")
+            try:
+                stage_type = StageType(st) if st in [e.value for e in StageType] else StageType.OTHER
+            except (ValueError, TypeError):
+                stage_type = StageType.OTHER
+            detected_stages.append(
+                DetectedStage(
+                    stage_type=stage_type,
+                    title=str(s.get("title", f"Stage {i+1}")).strip(),
+                    description=str(s.get("description", "")).strip(),
+                    confidence=float(s.get("confidence", 0.8)),
+                    order_hint=int(s.get("order_hint", i + 1)),
+                )
+            )
+        # Sort by order_hint
+        detected_stages.sort(key=lambda x: x.order_hint)
+
+        extracted_milestones: List[ExtractedMilestone] = []
+        for m in cold_result.get("milestones", []):
+            extracted_milestones.append(
+                ExtractedMilestone(
+                    name=str(m.get("name", "")).strip(),
+                    description=str(m.get("description", "")).strip(),
+                    stage=str(m.get("stage", "")).strip(),
+                    milestone_type=str(m.get("milestone_type", "deliverable")).lower(),
+                    evidence_snippet="",
+                    is_critical=bool(m.get("is_critical", False)),
+                    confidence=float(m.get("confidence", 0.8)),
+                )
+            )
+
+        duration_estimates: List[DurationEstimate] = []
+        for d in cold_result.get("durations", []):
+            duration_estimates.append(
+                DurationEstimate(
+                    item_description=str(d.get("item_description", "")).strip(),
+                    item_type=(d.get("item_type") or "stage").lower(),
+                    duration_weeks_min=int(d.get("duration_weeks_min", 4)),
+                    duration_weeks_max=int(d.get("duration_weeks_max", 8)),
+                    duration_months_min=int(d.get("duration_months_min", 1)),
+                    duration_months_max=int(d.get("duration_months_max", 2)),
+                    confidence="medium" if float(d.get("confidence", 0.5)) >= 0.6 else "low",
+                    basis=str(d.get("basis", "default")).strip() or "default",
+                )
+            )
+        # If cold start didn't return durations per stage, add from stages
+        if not duration_estimates and detected_stages:
+            for stage in detected_stages:
+                duration_estimates.append(
+                    DurationEstimate(
+                        item_description=stage.title,
+                        item_type="stage",
+                        duration_weeks_min=8,
+                        duration_weeks_max=24,
+                        duration_months_min=2,
+                        duration_months_max=6,
+                        confidence="medium",
+                        basis="default",
+                    )
+                )
+
+        dependencies_list: List[Dependency] = []
+        for dep in cold_result.get("dependencies", []):
+            dependencies_list.append(
+                Dependency(
+                    dependent_item=str(dep.get("dependent_item", dep.get("dependent", ""))).strip(),
+                    depends_on_item=str(dep.get("depends_on_item", dep.get("depends_on", ""))).strip(),
+                    dependency_type=str(dep.get("dependency_type", dep.get("type", "finish_to_start"))).strip(),
+                    confidence=float(dep.get("confidence", 0.8)),
+                    reason=str(dep.get("reason", "")).strip(),
+                )
+            )
+
+        return detected_stages, extracted_milestones, duration_estimates, dependencies_list
 
     def _create_stage_records(
         self,

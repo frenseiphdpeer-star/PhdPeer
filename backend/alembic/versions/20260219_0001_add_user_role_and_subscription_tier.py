@@ -33,36 +33,45 @@ subscription_tier_enum = sa.Enum(
 
 def upgrade() -> None:
     bind = op.get_bind()
+    from sqlalchemy import inspect
+    insp = inspect(bind)
+    user_cols = {c["name"] for c in insp.get_columns("users")}
+    user_indexes = {idx["name"] for idx in insp.get_indexes("users")}
+
     if bind.dialect.name == "postgresql":
         user_role_enum.create(bind, checkfirst=True)
         subscription_tier_enum.create(bind, checkfirst=True)
 
-    op.add_column(
-        "users",
-        sa.Column(
-            "role",
-            user_role_enum,
-            nullable=False,
-            server_default="researcher",
-        ),
-    )
-    op.add_column(
-        "users",
-        sa.Column(
-            "subscription_tier",
-            subscription_tier_enum,
-            nullable=False,
-            server_default="free",
-        ),
-    )
+    if "role" not in user_cols:
+        op.add_column(
+            "users",
+            sa.Column(
+                "role",
+                user_role_enum,
+                nullable=False,
+                server_default="researcher",
+            ),
+        )
+    if "subscription_tier" not in user_cols:
+        op.add_column(
+            "users",
+            sa.Column(
+                "subscription_tier",
+                subscription_tier_enum,
+                nullable=False,
+                server_default="free",
+            ),
+        )
 
-    op.create_index(op.f("ix_users_role"), "users", ["role"], unique=False)
-    op.create_index(
-        op.f("ix_users_subscription_tier"),
-        "users",
-        ["subscription_tier"],
-        unique=False,
-    )
+    if "ix_users_role" not in user_indexes:
+        op.create_index(op.f("ix_users_role"), "users", ["role"], unique=False)
+    if "ix_users_subscription_tier" not in user_indexes:
+        op.create_index(
+            op.f("ix_users_subscription_tier"),
+            "users",
+            ["subscription_tier"],
+            unique=False,
+        )
 
 
 def downgrade() -> None:

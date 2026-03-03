@@ -1,6 +1,6 @@
 """add refresh_tokens table, enterprise_client role, convert role to varchar
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: f7e8d9c0b1a2
 Revises: 825a6e002e17
 Create Date: 2026-03-02 00:01:00.000000
 
@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision: str = "a1b2c3d4e5f6"
+revision: str = "f7e8d9c0b1a2"
 down_revision: Union[str, None] = "825a6e002e17"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,8 +24,10 @@ def upgrade() -> None:
     # 1. Convert role column from native enum to VARCHAR so new values work
     #    without DDL for every new role.
     if is_pg:
+        op.execute("ALTER TABLE users ALTER COLUMN role DROP DEFAULT")
         op.execute("ALTER TABLE users ALTER COLUMN role TYPE VARCHAR USING role::text")
         op.execute("DROP TYPE IF EXISTS user_role")
+        op.execute("ALTER TABLE users ALTER COLUMN role SET DEFAULT 'researcher'")
 
     # 2. Rename legacy value
     op.execute(
